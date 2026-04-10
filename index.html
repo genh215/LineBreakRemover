@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <title>No Line Break</title>
+    <title>Line Break Remover</title>
     <style>
-        textarea, div {
+        textarea {
             width: 100%;
             height: 200px;
-            resize: none;
+            resize: vertical;
             box-sizing: border-box;
         }
         button {
@@ -17,22 +17,78 @@
             margin-top: 10px;
             height: 40px;
         }
+        #message {
+            margin-top: 8px;
+            font-size: 14px;
+        }
+        .description {
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #555;
+            line-height: 1.5;
+        }
     </style>
     <script>
         function removeLineBreaks() {
             const inputText = document.getElementById("inputText");
             const outputText = document.getElementById("outputText");
-            const stringWithoutLineBreaks = inputText.value.replace(/\r?\n|\r/g, ' ');
-            outputText.innerHTML = stringWithoutLineBreaks;
+
+            const result = inputText.value.replace(/\r?\n|\r/g, ' ');
+            outputText.value = result;
+
+            document.getElementById("message").textContent = "";
+        }
+
+        async function copyResult() {
+            const outputText = document.getElementById("outputText").value;
+            const message = document.getElementById("message");
+
+            if (!outputText) {
+                message.style.color = "red";
+                message.textContent = "Nothing to copy.";
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(outputText);
+                message.style.color = "green";
+                message.textContent = "Copied to clipboard.";
+            } catch (err) {
+                const temp = document.createElement("textarea");
+                temp.value = outputText;
+                document.body.appendChild(temp);
+                temp.select();
+                try {
+                    document.execCommand("copy");
+                    message.style.color = "green";
+                    message.textContent = "Copied to clipboard.";
+                } catch (e) {
+                    message.style.color = "red";
+                    message.textContent = "Failed to copy.";
+                }
+                document.body.removeChild(temp);
+            }
         }
     </script>
 </head>
 <body>
-    <h1>No Line Break</h1>
-    <h3>Text</h3>
+    <h1>Line Break Remover</h1>
+
+    <div class="description">
+        Remove unwanted line breaks and convert multiline text into a single line. All processing is done locally in your browser; no input data is sent externally.<br>
+        PDFなどからコピーした際に入る不要な改行を削除し、1行のテキストに変換します。HTML上で処理するため入力情報は外部に送信されません。
+    </div>
+
+    <h3>Input</h3>
     <textarea id="inputText"></textarea>
-    <button onclick="removeLineBreaks()">Remove</button>
-    <h3>Result</h3>
-    <div id="outputText"></div>
+
+    <button onclick="removeLineBreaks()">Remove Line Breaks</button>
+
+    <h3>Result (Editable)</h3>
+    <textarea id="outputText"></textarea>
+
+    <button onclick="copyResult()">Copy</button>
+
+    <div id="message"></div>
 </body>
 </html>
